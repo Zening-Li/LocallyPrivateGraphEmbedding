@@ -135,7 +135,7 @@ class SquareWave(Mechanism):
         return x
 
 
-class MultiDimSquareWave(SquareWave):
+class HighDimSquareWave(SquareWave):
     def __call__(self, x: torch.FloatTensor):
         scaler = MinMaxScaler(x)
         x = scaler.transform(x)
@@ -156,5 +156,5 @@ supported_mechanisms = {
     'lp': Laplace,
     'mb': MultiBit,
     'pm': MultiDimPiecewise,
-    'hds': MultiDimSquareWave
+    'hds': HighDimSquareWave
 }

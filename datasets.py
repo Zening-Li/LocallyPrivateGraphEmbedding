@@ -20,7 +20,7 @@ class Graph:
 
     def load_node_dataset(dataset_str: str):
         init_data = tree()
-        dataset_path = '../Graph_Embedding_LDP/datasets/' + dataset_str + '/'
+        dataset_path = './datasets/' + dataset_str + '/'
         init_data['adj'] = sp.load_npz(dataset_path+dataset_str+'.npz')
         init_data['attr'] = torch.FloatTensor(
             np.load(dataset_path + dataset_str + '_feat.npy'))
@@ -28,7 +28,7 @@ class Graph:
 
     def load_link_dataset(dataset_str: str):
         init_data = tree()
-        dataset_path = '../Graph_Embedding_LDP/datasets/' + dataset_str + '/'
+        dataset_path = './datasets/' + dataset_str + '/'
         init_data['adj'] = sp.load_npz(dataset_path+dataset_str+'_link.npz')
         init_data['attr'] = torch.FloatTensor(
             np.load(dataset_path + dataset_str + '_link_feat.npy'))
@@ -36,7 +36,7 @@ class Graph:
 
 
 def get_labels_split_idx(dataset_str: str):
-    dataset_path = '../Graph_Embedding_LDP/datasets/' + dataset_str + '/'
+    dataset_path = './datasets/' + dataset_str + '/'
     data_loader = np.load(dataset_path + dataset_str + '_labels.npz')
     labels = torch.LongTensor(data_loader['labels'])
     split_idx = {}

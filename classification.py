@@ -32,17 +32,17 @@ warnings.filterwarnings('ignore')
 class Instructor:
     def __init__(self, opt) -> None:
         # logging
-        self.logger = logging.getLogger(name=opt['dataset_str'])
-        log_path = './log/' + opt['dataset_str'] + '_node/'
-        if not os.path.exists(log_path):
-            os.mkdir(log_path)
-        log_path += opt['mechanism']+'_'+str(opt['eps'])+'.log'
-        file_handler = logging.FileHandler(log_path)
-        file_handler.setLevel(level=logging.INFO)
-        self.logger.addHandler(file_handler)
+        # self.logger = logging.getLogger(name=opt['dataset_str'])
+        # log_path = './log/' + opt['dataset_str'] + '_node/'
+        # if not os.path.exists(log_path):
+        #     os.mkdir(log_path)
+        # log_path += opt['mechanism']+'_'+str(opt['eps'])+'.log'
+        # file_handler = logging.FileHandler(log_path)
+        # file_handler.setLevel(level=logging.INFO)
+        # self.logger.addHandler(file_handler)
 
-        self.logger.info('-' * 80)
-        # print('-' * 80)
+        # self.logger.info('-' * 80)
+        print('-' * 80)
         self.opt = opt
 
     def _load_data_init_model(self):
@@ -102,13 +102,13 @@ class Instructor:
                 n_trainable_params += n_params
             else:
                 n_nontrainable_params += n_params
-        self.logger.info('n_trainable_params: {}, n_nontrainable_params: {}'.format( n_trainable_params, n_nontrainable_params))
-        # print('n_trainable_params: {}, n_nontrainable_params: {}'.format(n_trainable_params, n_nontrainable_params))
-        self.logger.info('> training arguments:')
-        # print('> training arguments:')
+        # self.logger.info('n_trainable_params: {}, n_nontrainable_params: {}'.format( n_trainable_params, n_nontrainable_params))
+        print('n_trainable_params: {}, n_nontrainable_params: {}'.format(n_trainable_params, n_nontrainable_params))
+        # self.logger.info('> training arguments:')
+        print('> training arguments:')
         for arg in self.opt:
-            self.logger.info('>>> {}: {}'.format(arg, self.opt[arg]))
-            # print('>>> {}: {}'.format(arg, self.opt[arg]))
+            # self.logger.info('>>> {}: {}'.format(arg, self.opt[arg]))
+            print('>>> {}: {}'.format(arg, self.opt[arg]))
 
     def _reset_params(self) -> None:
         for param in self.model.parameters():
@@ -142,11 +142,11 @@ class Instructor:
             val_eval = self._evaluate('valid')
             test_eval = self._evaluate('test')
 
-            nni.report_intermediate_result(val_eval)
+            # nni.report_intermediate_result(val_eval)
     
             if (epoch + 1) % self.opt['log_steps'] == 0:
-                self.logger.info('>' * 80)
-                # print('>' * 80)
+                # self.logger.info('>' * 80)
+                print('>' * 80)
                 duration = time.time() - last_time
                 last_time = time.time()
                 to_print = (f'epoch: {epoch + 1}, '
@@ -154,8 +154,8 @@ class Instructor:
                             f'val eval: {100 * val_eval:.1f}, '
                             f'test eval: {100 * test_eval:.1f}, '
                             f'cost {duration:.3f} s')
-                self.logger.info(to_print)
-                # print(to_print)
+                # self.logger.info(to_print)
+                print(to_print)
 
             if val_eval > max_val_eval:
                 increase_flag = True
@@ -172,7 +172,7 @@ class Instructor:
                     break
             else:
                 continue_not_increase = 0
-        nni.report_final_result(val_eval)
+        # nni.report_final_result(val_eval)
 
         return max_val_eval
 
@@ -207,8 +207,8 @@ class Instructor:
         result['repeats'] = self.opt['repeats']
 
         for i in range(self.opt['repeats']):
-            self.logger.info('repeat: {}'.format(i+1))
-            # print('repeat: {}'.format(i+1))
+            # self.logger.info('repeat: {}'.format(i+1))
+            print('repeat: {}'.format(i+1))
             self._load_data_init_model()
             self._reset_params()
             max_val_eval = self._train()
@@ -218,26 +218,26 @@ class Instructor:
                 self.opt['mechanism'] + '_' + str(self.opt['eps']) + '.pkl'
             self.model.load_state_dict(torch.load(model_path))
             test_eval = self._evaluate('test')
-            self.logger.info('max valid eval: {:.1f}, test eval: {:.1f}'.format(100 * max_val_eval, 100 * test_eval))
-            # print('max valid eval: {:.1f}, test eval: {:.1f}'.format(100 * max_val_eval, 100 * test_eval))
+            # self.logger.info('max valid eval: {:.1f}, test eval: {:.1f}'.format(100 * max_val_eval, 100 * test_eval))
+            print('max valid eval: {:.1f}, test eval: {:.1f}'.format(100 * max_val_eval, 100 * test_eval))
             test_eval_list.append(test_eval)
-            self.logger.info('#' * 80)
-            # print('#' * 80)
+            # self.logger.info('#' * 80)
+            print('#' * 80)
         max_val_eval_avg = sum(max_val_eval_list) / self.opt['repeats']
         test_eval_avg = sum(test_eval_list) / self.opt['repeats']
         result['max valid eval'], result['test eval'] = str(max_val_eval_list), str(test_eval_list)
         result['max valid eval avg'], result['test eval avg'] = max_val_eval_avg, test_eval_avg
-        self.logger.info("max valid eval avg: {:.1f}".format(100 * max_val_eval_avg))
-        # print("max valid eval avg: {:.1f}".format(100 * max_val_eval_avg))
-        self.logger.info("test eval avg: {:.1f}".format(100 * test_eval_avg))
-        # print("test eval avg: {:.1f}".format(100 * test_eval_avg))
-        df_result = pd.DataFrame(data=result, index=[0])
-        file_path = './results/' + self.opt['dataset_str'] + '_node/' + \
-            self.opt['mechanism'] + '_' + str(self.opt['eps']) + '.csv'
-        if os.path.exists(file_path):
-            df_result.to_csv(file_path, mode='a', index=False, header=False, encoding='utf-8')
-        else:
-            df_result.to_csv(file_path, index=False, encoding='utf-8')
+        # self.logger.info("max valid eval avg: {:.1f}".format(100 * max_val_eval_avg))
+        print("max valid eval avg: {:.1f}".format(100 * max_val_eval_avg))
+        # self.logger.info("test eval avg: {:.1f}".format(100 * test_eval_avg))
+        print("test eval avg: {:.1f}".format(100 * test_eval_avg))
+        # df_result = pd.DataFrame(data=result, index=[0])
+        # file_path = './results/' + self.opt['dataset_str'] + '_node/' + \
+        #     self.opt['mechanism'] + '_' + str(self.opt['eps']) + '.csv'
+        # if os.path.exists(file_path):
+        #     df_result.to_csv(file_path, mode='a', index=False, header=False, encoding='utf-8')
+        # else:
+        #     df_result.to_csv(file_path, index=False, encoding='utf-8')
 
 
 if __name__ == '__main__':
@@ -287,8 +287,8 @@ if __name__ == '__main__':
     os.environ['NUMEXPR_NUM_THREADS'] = str(cpu_num)
     torch.set_num_threads(cpu_num)
 
-    optimized_params = nni.get_next_parameter()
+    # optimized_params = nni.get_next_parameter()
     opt = vars(opt)
-    opt.update(optimized_params)
+    # opt.update(optimized_params)
     ins = Instructor(opt)
     ins.run()
